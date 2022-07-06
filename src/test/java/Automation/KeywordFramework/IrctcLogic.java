@@ -26,76 +26,69 @@ import org.testng.asserts.Assertion;
 import Keywords.Defined.Keywords;
  
 public class IrctcLogic {
+ 	WebDriver driver;
+ 	String path = System.getProperty("user.dir");
  
-WebDriver driver;
-String path = System.getProperty("user.dir");
+ 	//create object of reusable class Keywords and Assertions
+ 	Keywords keyword = new Keywords();
+ 	//Assertions assertion = new Assertions();
  
-Keywords keyword = new Keywords();
-//Assertions assertion = new Assertions();
+ 	@Test
+ 	public void readExcelandexecute() throws IOException, InterruptedException{
  
-@Test
-public void readExcelandexecute() throws IOException, InterruptedException{
+ 		//From excelfile
+ 		String excelFilePath = path+"\\Externals\\Test Cases.xlsx"; //path to excel file saved in excelFilePath variable
+ 		FileInputStream fileInputStream = new FileInputStream(excelFilePath); //reads all sheets from excelFilePath
+ 		XSSFWorkbook workbook = new XSSFWorkbook(fileInputStream); //reads data from xls sheets from fileInputStream
+ 		//Above code is file handling
+ 		
+ 		int testcasescount = workbook.getNumberOfSheets()-1; //reads sheets upto 1 less from last
+  		System.out.println("Total test cases :"+testcasescount);
+  		for (int testcase=0;testcase<testcasescount;testcase++){
+  			System.setProperty("webdriver.chrome.driver", path+"\\Drivers\\chromedriver.exe");
+  			driver = new ChromeDriver();
+  			XSSFSheet worksheet = workbook.getSheetAt(testcase); //gets  
+  			System.out.println("worksheet Number "+testcase+":"+worksheet.getSheetName());
+  			int row = worksheet.getLastRowNum(); //gets number of row coumts
+  			int column = worksheet.getRow(1).getLastCellNum(); //counts the col num. We pick 
+  			// teh first row and move to last row number  so we get the number of column 
+  			for(int i=1;i<=row;i++){ //runs until last row is reached
  
-//From excelfile
-String excelFilePath = path+"\\Externals\\Test Cases.xlsx";
-FileInputStream fileInputStream = new FileInputStream(excelFilePath);
+  				LinkedList<String> Testexecution = new LinkedList<>();  // all excel data will be imported here in
+  				// Testexecution object from where we will use which data to particularly pick
+  				System.out.println("Row value :"+i+"It has first cell value as : "+worksheet.getRow(i).getCell(0));
  
-XSSFWorkbook workbook = new XSSFWorkbook(fileInputStream);
+  				for(int j=0;j<column-1;j++){ 
+  					System.out.println("Column index :"+j);
+  					Cell Criteria = worksheet.getRow(i).getCell(j);
+  					String CriteriaText;
+  					if(Criteria==null){
+  						CriteriaText = null;
+  					}else{
+  						CriteriaText = Criteria.getStringCellValue();
+  					}
+  					Testexecution.add(CriteriaText);
+  				}
+  				System.out.println("List :"+Testexecution);
  
-int testcasescount = workbook.getNumberOfSheets()-1;
+  				String TestStep = Testexecution.get(0);
+  				String ObjectName = Testexecution.get(1);
+  				String LocatorType = Testexecution.get(2);
+  				String Testdata = Testexecution.get(3);
+  				String AssertionType = Testexecution.get(4);
+  				String ExpectedValue = Testexecution.get(5);
+  				String ActualValue = Testexecution.get(6);
+  				perform(TestStep,ObjectName,LocatorType,Testdata,AssertionType,ExpectedValue,ActualValue);
  
-System.out.println("Total test cases :"+testcasescount);
+  				System.out.println("Row "+i+" is read and action performed");
+  			}
  
-for (int testcase=0;testcase<testcasescount;testcase++){
-System.setProperty("webdriver.chrome.driver", path+"\\Drivers\\chromedriver.exe");
-driver = new ChromeDriver();
+  			driver.close();
+  			System.out.println("************************TEST CASE "+worksheet.getSheetName()+" is executed*******************");
+  		}
+ 	}
  
-XSSFSheet worksheet = workbook.getSheetAt(testcase);
- 
-System.out.println("worksheet Number "+testcase+":"+worksheet.getSheetName());
- 
-int row = worksheet.getLastRowNum();
-int column = worksheet.getRow(1).getLastCellNum();
- 
-for(int i=1;i<=row;i++){
- 
-LinkedList<String> Testexecution = new LinkedList<>();
- 
-System.out.println("Row value :"+i+"It has first cell value as : "+worksheet.getRow(i).getCell(0));
- 
-for(int j=0;j<column-1;j++){
-System.out.println("Column index :"+j);
-Cell Criteria = worksheet.getRow(i).getCell(j);
- 
-String CriteriaText;
-if(Criteria==null){
-CriteriaText = null;
-}else{
-CriteriaText = Criteria.getStringCellValue();
-}
-Testexecution.add(CriteriaText);
-}
-System.out.println("List :"+Testexecution);
- 
-String TestStep = Testexecution.get(0);
-String ObjectName = Testexecution.get(1);
-String LocatorType = Testexecution.get(2);
-String Testdata = Testexecution.get(3);
-String AssertionType = Testexecution.get(4);
-String ExpectedValue = Testexecution.get(5);
-String ActualValue = Testexecution.get(6);
- 
-perform(TestStep,ObjectName,LocatorType,Testdata,AssertionType,ExpectedValue,ActualValue);
- 
-System.out.println("Row "+i+" is read and action performed");
-}
- 
-driver.close();
-System.out.println("************************TEST CASE "+worksheet.getSheetName()+" is executed*******************");
-}
-}
- 
-public void perform(String operation, String objectName, String locatorType, String testdata,
+ public void perform(String operation, String objectName, String locatorType, String testdata,
 String assertionType, String expectedValue, String actualValue) throws IOException, InterruptedException {
  
 switch (operation) {
